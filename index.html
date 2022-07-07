@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Документ HTML</title>
+	
+	
+<style>
+ * { margin:0; padding:0; }
+   canvas { display:block; }
+  </style>	
+	
+</head>
+<body>
+
+<script type="text/javascript">
+
+var canvas ;//= document.getElementById('canvas');
+var context ;//= canvas.getContext('2d');
+
+var SelPointID = -1
+var LastPointID = 0;
+var Cords = [-1,-1, -1, -1, -1, -1]
+
+var rad = (11/2)
+
+
+
+window.onload = function(){
+
+canvas = document.getElementById('canvas');
+context = canvas.getContext('2d');
+
+window.addEventListener('resize', resizeCanvas, false);
+        
+
+
+resizeCanvas();
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight-25;
+	
+	DrawCaw();
+	}
+
+
+canvas.addEventListener('mousedown', function (e) {
+    var x = e.pageX - e.target.offsetLeft,
+        y = e.pageY - e.target.offsetTop;
+		//document.getElementById("W").value=x;
+        //document.getElementById("H").value=y;
+		
+		SelPointID=-1;
+		
+		for (var i = 0 ; i<LastPointID  ;i++ ){
+		var dist = Dist(Cords[i*2],Cords[i*2+1],x,y)
+		if (dist<rad){SelPointID=i;}
+		}
+		
+		
+		if(LastPointID <3){
+		Cords[LastPointID*2] = x
+		Cords[LastPointID*2+1] = y 
+		SelPointID=LastPointID;
+		LastPointID++
+		}
+		//alert( Cords )
+		//alert( SelPointID )
+		DrawCaw()
+});
+
+canvas.addEventListener('mousemove', function (e) {
+    var x = e.pageX - e.target.offsetLeft,
+        y = e.pageY - e.target.offsetTop;
+		//document.getElementById("W").value=x;
+        //document.getElementById("H").value=y;
+		
+		if(SelPointID>-1){
+		Cords[SelPointID*2]=x;
+		Cords[SelPointID*2+1]=y;
+		}
+		
+		//if(LastPointID <3){
+		//Cords[LastPointID*2] = x
+		//Cords[LastPointID*2+1] = y 	
+		//LastPointID++
+		//}
+		//alert( Cords )
+		
+		DrawCaw()
+});
+
+canvas.addEventListener('mouseup', function (e) {
+    var x = e.pageX - e.target.offsetLeft,
+        y = e.pageY - e.target.offsetTop;
+		//document.getElementById("W").value=x;
+        //document.getElementById("H").value=y;
+		
+		SelPointID=-1
+		
+		DrawCaw()
+});
+
+
+
+
+}	
+
+    function Dist(C1X,C1Y,C2X,C2Y){
+	var LX = C1X-C2X ;
+	var LY = C1Y-C2Y;
+	return Math.sqrt((LX*LX) + (LY*LY));
+	}
+  
+    
+    function DrawCaw(){
+	context.clearRect(0, 0, canvas.width, canvas.height);
+	context.fillStyle = "black";
+	context.fillRect(0, 0, canvas.width, canvas.height);
+	
+
+  
+	context.beginPath();	
+	
+	if(LastPointID==3){
+	
+	context.strokeStyle = "blue"; //цвет обводки
+	
+    context.beginPath();
+    context.moveTo(Cords[0*2],Cords[0*2+1]);
+    context.lineTo(Cords[1*2],Cords[1*2+1]);
+    context.lineTo(Cords[2*2],Cords[2*2+1]);
+	
+	
+	var LX = Cords[0*2]-Cords[2*2];
+	var LY = Cords[0*2+1]-Cords[2*2+1];
+	var dist = Math.sqrt((LX*LX) + (LY*LY));
+	
+	var massX = Cords[2*2]+LX/2
+	var massY = Cords[2*2+1]+LY/2
+    //context.lineTo(massX, massY);
+	
+	
+	LX = massX-Cords[1*2];
+	LY = massY-Cords[1*2+1];
+	
+	var reflectX = massX+LX;
+    var reflectY = massY+LY;
+	
+    context.lineTo(reflectX, reflectY);
+	context.lineTo(Cords[0*2],Cords[0*2+1]);
+  
+	context.stroke();
+	
+
+	var distABX = Dist(Cords[0*2],Cords[0*2+1],Cords[1*2],Cords[1*2+1]) ;
+
+	var distCBX = Dist(Cords[2*2],Cords[2*2+1],Cords[1*2],Cords[1*2+1]) ;
+
+	var p = (distABX+distCBX+dist)/2
+	
+	var pS = 2* Math.sqrt(p*(p-distABX)*(p-distCBX)*(p-dist))
+	
+	var Rad = Math.sqrt(pS/Math.PI)
+	
+	
+    context.beginPath();
+	context.strokeStyle = "yellow"; //цвет обводки
+	
+	context.moveTo(massX+Rad,massY);
+	context.arc(massX,massY,Rad,0, 2*Math.PI,true);
+	
+	
+	context.stroke();
+	
+	}
+	
+	
+	context.beginPath();
+	context.strokeStyle = "red"; //цвет обводки
+
+	for (var i = 0 ; i<LastPointID  ;i++ ){
+	//context.lineWidth = 2; // толщина линии
+	//alert( Cords[i*2]+" "+Cords[i*2+1])
+	context.moveTo(Cords[i*2]+rad,Cords[i*2+1])
+    context.arc(Cords[i*2],Cords[i*2+1],rad,0, 2*Math.PI,true);
+	}
+	context.stroke();
+	
+	
+    context.beginPath();
+	context.fillStyle = "white";
+	var TY = 18
+    context.font = "18px Verdana";
+	for (var i = 0; i<LastPointID; i++){
+    context.fillText("Point №"+i +" (X:"+ Cords[i*2] +" Y:"+ Cords[i*2+1] +")", 10, TY+=20);
+	}
+	
+	if(LastPointID==3){
+	context.fillText("S:"+ pS.toFixed() , 10, TY+=20);
+	}
+	
+	
+	context.stroke();
+	
+	
+	}
+  
+    function SetDot(){
+	const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+    //document.getElementById("W").value="10";
+    //document.getElementById("H").value="10";
+    }
+	
+	function reset(){
+    for (var i = 0 ; i<6  ;i++ ){ Cords[i]= -1;}
+	LastPointID =0;
+	//alert( Cords )
+	context.clearRect(0, 0, canvas.width, canvas.height);
+	DrawCaw()
+    }
+	
+	function about(){
+	alert(' "Drawings on JS" \nMade by: Slavikgritsov@gmail.com \n\nInstruction: \nPress left mouse button to set point or grab an existing one and hold to drag it on its place. \nAfter 3 points set, a parallelogram and a circle will be built on them. \nIn the left corner the coordinates of points and the area of figures are displayed.')
+	}
+	
+    </script>
+	
+    <canvas id="canvas" width="600" height="300"></canvas>
+    <!-<input type="text" id="W"  />
+    <!-<input type="text" id="H"  />
+    <input type="submit" Onclick ="reset()"  value="Reset"/>
+	<input type="submit" Onclick ="about()" value="About"/>
+</body>
+</html>
